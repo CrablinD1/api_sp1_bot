@@ -14,4 +14,4 @@ six==1.15.0
 tornado==6.0.4
 urllib3==1.25.9
 pytest==5.3.2
-dotenv
+python-dotenv
