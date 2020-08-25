@@ -13,6 +13,8 @@ TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 URL = 'https://praktikum.yandex.ru/api/user_api/homework_statuses/'
 logging.basicConfig(filename='homework.log', format='%(asctime)s %(message)s')
+bot = telegram.Bot(token=TELEGRAM_TOKEN)
+ERROR_MESSAGE = 'Connection error'
 
 
 def parse_homework_status(homework):
@@ -20,8 +22,9 @@ def parse_homework_status(homework):
     status = homework.get('status')
 
     if status is None or homework_name is None:
-        logging.error('В ответе отсутствует ключ "status" или "homework_name"')
+        logging.error(ERROR_MESSAGE)
         return f'В ответе отсутствует ключ "status" или "homework_name"'
+
     if status != 'approved':
         verdict = 'К сожалению в работе нашлись ошибки.'
     else:
@@ -34,16 +37,18 @@ def get_homework_statuses(current_timestamp):
         current_timestamp = int(time.time())
     headers = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
     params = {'from_date': current_timestamp}
+
     try:
         homework_statuses = requests.get(URL, params=params, headers=headers)
+
     except requests.exceptions.RequestException as error:
         logging.error(f'Произошла ошибка: {error}')
         return {}
+
     return homework_statuses.json()
 
 
 def send_message(message):
-    bot = telegram.Bot(token=TELEGRAM_TOKEN)
     return bot.send_message(chat_id=CHAT_ID, text=message)
 
 
@@ -61,7 +66,7 @@ def main():
             time.sleep(600)  # опрашивать раз в пять минут
 
         except Exception as e:
-            logging.error(f'Бот упал с ошибкой: {e}')
+            logging.error(ERROR_MESSAGE)
             print(f'Бот упал с ошибкой: {e}')
             time.sleep(5)
             continue
